@@ -5,8 +5,6 @@ import co.com.sofka.calendar.collections.Program;
 import co.com.sofka.calendar.collections.Time;
 import co.com.sofka.calendar.model.ProgramDate;
 import co.com.sofka.calendar.repositories.ProgramRepository;
-import com.google.gson.Gson;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -41,10 +39,34 @@ class SchedulerServiceTest {
 
         Mockito.when(repository.findById(programId)).thenReturn(Mono.just(program));
         //TODO: hacer una subscripción de el servicio reactivo
-        List<ProgramDate> response = schedulerService.generateCalendar(programId, startDate);
+        Flux<ProgramDate> response = schedulerService.generateCalendar(programId, startDate);
 
-        Assertions.assertEquals(13, response.size());//TODO: hacer de otro modo
-        Assertions.assertEquals(getSnapResult(), new Gson().toJson(response));//TODO: hacer de otro modo
+
+        StepVerifier.create(response)
+                .expectNextCount(6)
+                .expectComplete();
+
+        StepVerifier.create(response)
+                .expectNextMatches(programDate ->
+                        programDate.getDate().toString().equals("2022-01-03")
+                                && programDate.getCategoryName().equals("Principios"))
+                .expectNextMatches(programDate ->
+                        programDate.getDate().toString().equals("2022-01-04")
+                                && programDate.getCategoryName().equals("Bases"))
+                .expectNextMatches(programDate ->
+                        programDate.getDate().toString().equals("2022-01-05")
+                                && programDate.getCategoryName().equals("Bases"))
+                .expectNextMatches(programDate ->
+                        programDate.getDate().toString().equals("2022-01-06")
+                                && programDate.getCategoryName().equals("Fundamentos"))
+                .expectNextMatches(programDate ->
+                        programDate.getDate().toString().equals("2022-01-07")
+                                && programDate.getCategoryName().equals("Fundamentos"))
+                .expectNextMatches(programDate ->
+                        programDate.getDate().toString().equals("2022-01-10")
+                                && programDate.getCategoryName().equals("Fundamentos"))
+                .verifyComplete();
+
         Mockito.verify(repository).findById(programId);
     }
 
