@@ -4,11 +4,13 @@ import co.com.sofka.calendar.model.ProgramDate;
 import co.com.sofka.calendar.services.SchedulerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("api/v1/calendar")
@@ -17,9 +19,12 @@ public class SchedulerController {
     @Autowired
     SchedulerService service;
 
-    @GetMapping()
-    public Flux<ProgramDate> generateCalendar() {
-        var startDate = LocalDate.of(2022, 1, 1);
-        return service.generateCalendar("61b3cef8080d7bd8fff0cebb", startDate);
+    @GetMapping("/generate/{id}/{date}")
+    public Flux<ProgramDate> generateCalendar(@PathVariable("id")String id, @PathVariable("date")String date) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        var startDate = LocalDate.parse(date, formatter);
+
+        return service.generateCalendar(id, startDate);
     }
 }
